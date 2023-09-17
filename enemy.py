@@ -20,11 +20,11 @@ class Enemy:
             self.x += self.speed
         else:
             self.speed *= -1
-            self.y += 10
+            self.y += 40
 
         if self.x+self.speed < width-64:
             self.x += self.speed
         else:
             self.speed *= -1
-            self.y += 10
+            self.y += 40
         self.rect.topleft=(self.x,self.y)

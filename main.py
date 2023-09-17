@@ -2,6 +2,7 @@ import pygame
 import random
 from bullet import Bullet
 from enemy import Enemy
+from pygame import mixer
 
 pygame.init()
 screenWidth = 900
@@ -19,6 +20,19 @@ playerImg = pygame.image.load("images/player.png")
 playerX = 417
 playerY = 600
 playerChangeX = 0
+score=0
+
+# Sounds
+mixer.music.load("sounds/background-music.wav")
+mixer.music.play(-1)
+bulletSound= pygame.mixer.Sound("sounds/laser.wav")
+explosionSound= pygame.mixer.Sound("sounds/explosion.wav")
+
+font = pygame.font.Font("freesansbold.ttf",24)
+def showScore():
+    txt = font.render("Score: "+str(score),True,(255,255,255))
+    screen.blit(txt,(10,10))
+   
 
 
 
@@ -30,31 +44,36 @@ def player(x, y):
 
 # Enemy
 enemyImg = pygame.image.load("images/ufo.png")
-enemyX = random.randint(30, 800)
-enemyY = random.randint(30, 200)
+enemyX = 834
+enemyY = 100
 enemySpeed = 0.3
+#enemy=Enemy(enemyX, enemyY, enemySpeed, enemyImg)
 
-enemy=Enemy(enemyX, enemyY, enemySpeed, enemyImg)
+enemies=[]
 
+def generate_enemy_position():
+    while True:
+        x = random.randint(40, 800)
+        if all(abs(x - e.x) > 64 for e in enemies):  # Check if new enemy position doesn't overlap with existing enemies
+            return x
 
-#def enemy(x, y):
-   #screen.blit(enemyImg, (x, y))
-
+for i in range(10):
+    enemies.append(Enemy(i*100, enemyY, enemySpeed, enemyImg))
+def bounce():
+    global playerY, is_bouncing
+    playerY =620
+    is_bouncing = True
+    pygame.time.set_timer(pygame.USEREVENT, 50)
 
 # Bullets
 bullets=[]
 
 
-# Collision Rects
-
-enemy_rect = enemyImg.get_rect()
-enemy_rect.topleft = (enemyX, enemyY)
 
 
 # Game loop
 running = True
 while running:
-    screen.fill((50, 100, 200))
     screen.blit(background, (0, 0))
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
@@ -68,41 +87,42 @@ while running:
                 playerChangeX += 1
             elif event.key == pygame.K_SPACE:
                 bullets.append(Bullet(playerX, playerY))
+                bulletSound.play()
+                bounce()
+               
+                
 
         if event.type == pygame.KEYUP:
             if event.key in (pygame.K_LEFT, pygame.K_a, pygame.K_RIGHT, pygame.K_d):
                 playerChangeX = 0
+        
+        elif event.type == pygame.USEREVENT and is_bouncing:
+            playerY = 600
+            is_bouncing = False
 
     if screenWidth - 64 > playerX + playerChangeX > 0:
         playerX += playerChangeX
-
-    # if enemyX + enemySpeed > 0:
-    #     enemyX += enemySpeed
-    # else:
-    #     enemySpeed *= -1
-    #     enemyY += 10
-
-    # if enemyX + enemySpeed < screenWidth - 64:
-    #     enemyX += enemySpeed
-    # else:
-    #     enemySpeed *= -1
-    #     enemyY += 10
-
-    # enemy_rect.topleft = (enemyX, enemyY)
    
     for b in bullets:
         b.move()
         b.draw(screen)
-        if b.check_collision(enemy.rect):
-            print("Bullet hit the enemy!")
-            bullets.remove(b)
     
+    for e in enemies:    
+        for b  in bullets:
+            if b.check_collision(e.rect):
+                bullets.remove(b)
+                enemies.remove(e)
+               # explosionSound.play()
+                score+=1
+                enemies.append(Enemy(enemyX, enemyY, enemySpeed, enemyImg))
+                enemies.append(Enemy(enemyX-80, enemyY, enemySpeed, enemyImg))
 
     
         
     bullets = [b for b in bullets if b.y > 0]
-
+    showScore()
     player(playerX, playerY)
-    enemy.draw(screen)
-    enemy.move(screenWidth)
+    for e in enemies:
+        e.draw(screen)
+        e.move(screenWidth)
     pygame.display.update()
