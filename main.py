@@ -2,7 +2,6 @@ import pygame
 import random
 from bullet import Bullet
 from enemy import Enemy
-from pygame import mixer
 from sound_effects import SoundEffects
 
 # pygame
@@ -70,19 +69,10 @@ def bounce():
 bullets=[]
 
 
-
-
-# Game loop
-# ... (previous code)
-
 # Game loop
 running = True
 while running:
     screen.blit(background, (0, 0))
-    # key=pygame.key.get_pressed()
-    # if key == pygame.K_x:
-    #     paused=not paused
-    
   
     # Handle events
     
@@ -140,8 +130,11 @@ while running:
 
     if paused:
         # Display pause screen or menu
-        font = pygame.font.Font(None, 36)
+        dark_overlay = pygame.Surface((screenWidth, screenHeight), pygame.SRCALPHA)
+        dark_overlay.fill((0, 0, 0, 128))
+        screen.blit(dark_overlay, (0, 0))
         text = font.render("PAUSED", True, (255, 255, 255))
         text_rect = text.get_rect(center=(screenWidth // 2, screenHeight // 2))
+     
         screen.blit(text, text_rect)
     pygame.display.update()    
